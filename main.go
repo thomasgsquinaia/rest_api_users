@@ -2,7 +2,10 @@ package main
 
 import (
 	"errors"
+	"log"
 	"net/http"
+
+	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,7 +39,7 @@ func addUser(context *gin.Context) {
 
 func getUser(context *gin.Context) {
 	id := context.Param("id")
-	user, err := getTodoById(id)
+	user, err := getUserById(id)
 
 	if err != nil {
 		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not found"})
@@ -46,7 +49,28 @@ func getUser(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, user)
 }
 
-func getTodoById(id string) (*user, error) {
+// func updateUser(context *gin.Context) {
+// 	id := context.Param("id")
+// 	userUp, err := getUserById(id)
+
+// 	if err != nil {
+// 		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not update"})
+// 		return
+// 	}
+// 	context.IndentedJSON(http.StatusOK, userUp)
+// }
+
+func updateUser(rw http.ResponseWriter, req *http.Request) {
+	decoder := json.NewDecoder(req.Body)
+	var u user
+	err := decoder.Decode(&u)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(u.Name)
+}
+
+func getUserById(id string) (*user, error) {
 	for i, u := range users {
 		if u.Id == id {
 			return &users[i], nil
@@ -60,6 +84,8 @@ func main() {
 	router.GET("/users", getUsers)
 	router.GET("/users/:id", getUser)
 	router.POST("/users", addUser)
+	http.HandleFunc("/users", updateUser)
+	// router.POST("/users/:id", updateUser)
 
 	router.Run("localhost:9090")
 }
