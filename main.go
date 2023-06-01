@@ -2,10 +2,7 @@ package main
 
 import (
 	"errors"
-	"log"
 	"net/http"
-
-	"encoding/json"
 
 	"github.com/gin-gonic/gin"
 )
@@ -50,24 +47,36 @@ func getUser(context *gin.Context) {
 }
 
 // func updateUser(context *gin.Context) {
-// 	id := context.Param("id")
-// 	userUp, err := getUserById(id)
+// 	jsonData, err := ioutil.ReadAll(user.Request.Body)
+// 	// id := context.Param("id")
+// 	// userUp, err := getUserById(id)
 
 // 	if err != nil {
 // 		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not update"})
 // 		return
 // 	}
+// 	err = user.Set("id", jsonData, 0).Err()
 // 	context.IndentedJSON(http.StatusOK, userUp)
 // }
 
-func updateUser(rw http.ResponseWriter, req *http.Request) {
-	decoder := json.NewDecoder(req.Body)
-	var u user
-	err := decoder.Decode(&u)
+func updateUser(context *gin.Context) {
+	id := context.Param("id")
+	userUp, err := getUserById(id)
+	var requestBody user
+
 	if err != nil {
-		panic(err)
+		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not update 1° If"})
+		return
 	}
-	log.Println(u.Name)
+
+	if err := context.BindJSON(&requestBody); err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not update 2° If"})
+		return
+	}
+
+	users = append(users, requestBody)
+	context.IndentedJSON(http.StatusOK, userUp)
+	context.IndentedJSON(http.StatusOK, requestBody)
 }
 
 func getUserById(id string) (*user, error) {
@@ -84,8 +93,7 @@ func main() {
 	router.GET("/users", getUsers)
 	router.GET("/users/:id", getUser)
 	router.POST("/users", addUser)
-	http.HandleFunc("/users", updateUser)
-	// router.POST("/users/:id", updateUser)
+	router.PUT("/users/update/:id", updateUser)
 
 	router.Run("localhost:9090")
 }
