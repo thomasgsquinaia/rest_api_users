@@ -46,19 +46,6 @@ func getUser(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, user)
 }
 
-// func updateUser(context *gin.Context) {
-// 	jsonData, err := ioutil.ReadAll(user.Request.Body)
-// 	// id := context.Param("id")
-// 	// userUp, err := getUserById(id)
-
-// 	if err != nil {
-// 		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not update"})
-// 		return
-// 	}
-// 	err = user.Set("id", jsonData, 0).Err()
-// 	context.IndentedJSON(http.StatusOK, userUp)
-// }
-
 func updateUser(context *gin.Context) {
 	id := context.Param("id")
 	userUp, err := getUserById(id)
@@ -75,8 +62,20 @@ func updateUser(context *gin.Context) {
 	}
 
 	users = append(users, requestBody)
-	context.IndentedJSON(http.StatusOK, userUp)
+	context.JSON(http.StatusOK, userUp)
 	context.IndentedJSON(http.StatusOK, requestBody)
+}
+
+func deleteUser(context *gin.Context) {
+	id := context.Param("id")
+	userUp, err := getUserById(id)
+
+	if err != nil {
+		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "User not delete"})
+		return
+	}
+
+	context.IndentedJSON(http.StatusOK, userUp)
 }
 
 func getUserById(id string) (*user, error) {
@@ -94,6 +93,7 @@ func main() {
 	router.GET("/users/:id", getUser)
 	router.POST("/users", addUser)
 	router.PUT("/users/update/:id", updateUser)
+	router.DELETE("/users/delete/:id", deleteUser)
 
 	router.Run("localhost:9090")
 }
